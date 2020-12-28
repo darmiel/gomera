@@ -24,7 +24,10 @@ func createRouter() (res *mux.Router) {
 		}
 
 		if _, err := camera.Send(); err != nil {
+			_, _ = fmt.Fprintf(w, err.Error())
 			log.Println("Error sending webhook:", err)
+		} else {
+			_, _ = fmt.Fprintf(w, "Success!")
 		}
 	})
 
