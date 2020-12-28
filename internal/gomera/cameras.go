@@ -61,8 +61,19 @@ func (camera *Camera) IsCamera(cameraId string, secret string) (res bool) {
 func (camera *Camera) CreatePayload() (message *discord.WebhookMessage) {
 	datestr := time.Now().Format("02.01.2006 15:04:05")
 
+	var color uint
+	var content string
+
+	if !opt.DevEnvironment {
+		color = 16725044      // light red
+		content = "@everyone" // ping everyone
+	} else {
+		color = 3971831               // blue
+		content = "**Dev/Test-Mode**" // ping nobody
+	}
+
 	message = &discord.WebhookMessage{
-		Content:   "@everyone",
+		Content:   content,
 		Username:  "Notify for " + camera.Name,
 		AvatarUrl: camera.Avatar,
 		Embeds: []*discord.Embed{
@@ -70,7 +81,7 @@ func (camera *Camera) CreatePayload() (message *discord.WebhookMessage) {
 				Title:       "👉 View Stream",
 				Description: "**Detected motion**",
 				Url:         camera.StreamUrl,
-				Color:       16725044, // light red
+				Color:       color,
 				Fields: []*discord.Field{
 					discord.NewFieldInline("📸", camera.Name),
 					discord.NewFieldInline("📷", camera.Id),

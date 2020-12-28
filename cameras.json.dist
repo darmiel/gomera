@@ -1,0 +1,10 @@
+[
+  {
+    "id": "camera0",
+    "name": "My Camera",
+    "webhook": "https://ptb.discord.com/api/webhooks/<wehook>",
+    "avatar": "https://i.imgur.com/pcrqCmm.png",
+    "stream_url": "http://192.168.178.84/picture/1/current/",
+    "secret": "<secret without '/' and '#'>"
+  }
+]
