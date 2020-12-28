@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func createRouter() (res *mux.Router) {
@@ -29,6 +30,15 @@ func createRouter() (res *mux.Router) {
 		} else {
 			_, _ = fmt.Fprintf(w, "Success!")
 		}
+	})
+
+	router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		if opt.DevEnvironment {
+			_, _ = fmt.Fprintf(w, "Pong! "+strconv.Itoa(len(Cameras))+" camera/s loaded")
+		} else {
+			_, _ = fmt.Fprintf(w, "I am still here 🤗")
+		}
+		return
 	})
 
 	return router
