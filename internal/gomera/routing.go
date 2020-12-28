@@ -8,6 +8,10 @@ import (
 	"strconv"
 )
 
+var (
+	totalPings uint64 = 0
+)
+
 func createRouter() (res *mux.Router) {
 	router := mux.NewRouter()
 
@@ -33,6 +37,9 @@ func createRouter() (res *mux.Router) {
 	})
 
 	router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		totalPings++
+		log.Println("Client requested ping:", r.RemoteAddr, "total:", totalPings)
+
 		if opt.DevEnvironment {
 			_, _ = fmt.Fprintf(w, "Pong! "+strconv.Itoa(len(Cameras))+" camera/s loaded")
 		} else {
