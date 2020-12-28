@@ -1,6 +1,6 @@
 package main
 
-import "gomera/internal/gomera"
+import "github.com/darmiel/gomera/internal/gomera"
 
 func main() {
 	opt := gomera.Parse()

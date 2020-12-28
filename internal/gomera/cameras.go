@@ -3,7 +3,7 @@ package gomera
 import (
 	"encoding/json"
 	"errors"
-	"gomera/internal/discord"
+	"github.com/darmiel/gomera/internal/discord"
 	"io/ioutil"
 	"net/http"
 	"strings"
