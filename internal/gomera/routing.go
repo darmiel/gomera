@@ -20,7 +20,14 @@ func createRouter() (res *mux.Router) {
 
 		var cameraId = vars["cameraId"]
 		var secret = vars["secret"]
-		log.Println("👉", "Requesting camera with id:", cameraId, "and secret:", secret)
+
+		var visibleSecret string
+		if opt.DevEnvironment {
+			visibleSecret = secret
+		} else {
+			visibleSecret = "****"
+		}
+		log.Println("👉", "Requesting camera with id:", cameraId, "and secret:", visibleSecret)
 
 		camera, err := FindCamera(cameraId, secret)
 		if err != nil {
@@ -30,7 +37,7 @@ func createRouter() (res *mux.Router) {
 
 		if _, err := camera.Send(); err != nil {
 			_, _ = fmt.Fprintf(w, err.Error())
-			log.Println("Error sending webhook:", err)
+			log.Println("[Error 🚨]", "Error sending webhook:", err)
 		} else {
 			_, _ = fmt.Fprintf(w, "Success!")
 		}

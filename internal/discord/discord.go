@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 )
 
@@ -67,7 +66,6 @@ func (m *WebhookMessage) Send(u string) (r *http.Response, err error) {
 	}
 
 	js, err := m.Marshall()
-	log.Println("Payload / error:", js, err)
 	if err != nil {
 		return nil, err
 	}
