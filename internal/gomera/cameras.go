@@ -1,11 +1,10 @@
 package gomera
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
+	"gomera/internal/discord"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -45,76 +44,51 @@ func parseCameras() (res map[string]*Camera, err error) {
 	return Cameras, nil
 }
 
-func (camera *Camera) isCamera(cameraId string, secret string) (res bool) {
+func FindCamera(cameraId string, secret string) (cam *Camera, err error) {
+	for _, camera := range Cameras {
+		if camera.IsCamera(cameraId, secret) {
+			cam = camera
+			return cam, nil
+		}
+	}
+	return nil, errors.New("camera not found or access denied")
+}
+
+func (camera *Camera) IsCamera(cameraId string, secret string) (res bool) {
 	return strings.EqualFold(camera.Id, cameraId) && camera.Secret == secret
 }
 
-func (camera *Camera) createJsonPayload() (payload string) {
-	var timeStr = time.Now().Format("02.01.2006 15:04:05")
+func (camera *Camera) CreatePayload() (message *discord.WebhookMessage) {
+	datestr := time.Now().Format("02.01.2006 15:04:05")
 
-	return `
-{
-"content": "@everyone",
-"username": "Notify for ` + camera.Name + `",
-"avatar_url": "` + camera.Avatar + `",
-"embeds": [
-    {
-      "title": "👉 View Stream",
-      "description": "**Detected motion**",
-      "url": "` + camera.StreamUrl + `",
-      "color": 16725044,
-      "fields": [
-        {
-          "name": "📸",
-          "value": "` + camera.Name + `",
-          "inline": true
-        },
-        {
-          "name": "📷",
-          "value": "` + camera.Id + `",
-          "inline": true
-        },
-        {
-          "name": "⏰",
-          "value": "` + timeStr + `",
-          "inline": false
-        }
-      ],
-      "author": {
-        "name": "` + camera.Id + `/` + camera.Name + `",
-        "icon_url": "` + camera.Avatar + `"
-      }
-    }
-  ]
-}`
+	message = &discord.WebhookMessage{
+		Content:   "@everyone",
+		Username:  "Notify for " + camera.Name,
+		AvatarUrl: camera.Avatar,
+		Embeds: []*discord.Embed{
+			{
+				Title:       "👉 View Stream",
+				Description: "**Detected motion**",
+				Url:         camera.StreamUrl,
+				Color:       16725044, // light red
+				Fields: []*discord.Field{
+					discord.NewFieldInline("📸", camera.Name),
+					discord.NewFieldInline("📷", camera.Id),
+					discord.NewField("⏰", datestr),
+				},
+				Author: &discord.Author{
+					Name:    camera.Id + `/` + camera.Name,
+					IconUrl: camera.Avatar,
+				},
+			},
+		},
+	}
+
+	return message
 }
 
-func (camera *Camera) sendWebhook() (r *http.Response, err error) {
-	// send http request to discord webhook
-	if len(camera.Webhook) == 0 {
-		return nil, errors.New("webhook was empty")
-	}
-
-	log.Println("Creating payload")
-	reader := bytes.NewReader([]byte(camera.createJsonPayload()))
-	req, err := http.NewRequest("POST", camera.Webhook, reader)
-	if err != nil {
-		return nil, err
-	}
-	log.Println("Created request:", req)
-
-	req.Header.Set("Content-Type", "application/json")
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-
-	log.Println("Client did ... things")
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	return resp, nil
+func (camera *Camera) Send() (r *http.Response, err error) {
+	message := camera.CreatePayload()
+	r, err = message.Send(camera.Webhook)
+	return r, err
 }
